@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FAFAFA">
+
+    <!-- Main landscape layout -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <!-- Left: score/timer/progress at top, equation centered -->
+        <RelativeLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="3"
+            android:padding="16dp">
+
+            <!-- Top row: score | progress | timer -->
+            <LinearLayout
+                android:id="@+id/topRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="8dp">
+
+                <TextView
+                    android:id="@+id/tvScore"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Score: 0"
+                    android:textSize="28sp"
+                    android:textColor="#757575" />
+
+                <TextView
+                    android:id="@+id/tvMode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="EASY"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="#43A047"
+                    android:layout_marginEnd="20dp" />
+
+                <TextView
+                    android:id="@+id/tvProgress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="1 / 5"
+                    android:textSize="28sp"
+                    android:textColor="#757575"
+                    android:layout_marginEnd="24dp" />
+
+                <TextView
+                    android:id="@+id/tvTimer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="15"
+                    android:textSize="36sp"
+                    android:textStyle="bold"
+                    android:textColor="#757575" />
+
+            </LinearLayout>
+
+            <!-- Equation centered in the panel -->
+            <LinearLayout
+                android:id="@+id/equationRow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/tvNum1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="7"
+                    android:textSize="80sp"
+                    android:textStyle="bold"
+                    android:textColor="#212121"
+                    android:minWidth="90dp"
+                    android:gravity="center" />
+
+                <TextView
+                    android:id="@+id/tvOperator"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" + "
+                    android:textSize="72sp"
+                    android:textColor="#3F51B5" />
+
+                <TextView
+                    android:id="@+id/tvNum2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="8"
+                    android:textSize="80sp"
+                    android:textStyle="bold"
+                    android:textColor="#212121"
+                    android:minWidth="90dp"
+                    android:gravity="center" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" = "
+                    android:textSize="72sp"
+                    android:textColor="#3F51B5" />
+
+                <TextView
+                    android:id="@+id/tvAnswer"
+                    android:layout_width="130dp"
+                    android:layout_height="wrap_content"
+                    android:text="?"
+                    android:textSize="80sp"
+                    android:textStyle="bold"
+                    android:textColor="#212121"
+                    android:gravity="center"
+                    android:background="@drawable/answer_bg" />
+
+            </LinearLayout>
+        </RelativeLayout>
+
+        <!-- Vertical divider -->
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="#E0E0E0" />
+
+        <!-- Right: keypad -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:orientation="vertical"
+            android:padding="10dp"
+            android:background="#EEEEEE">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="0dp"
+                android:layout_weight="1" android:orientation="horizontal" android:layout_marginBottom="6dp">
+                <Button android:id="@+id/btn7" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                    android:text="7" android:textSize="44sp" android:textColor="#FFFFFF" android:textStyle="bold"
+                    android:background="@drawable/btn_keypad" android:layout_marginEnd="6dp" />
+                <Button android:id="@+id/btn8" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                    android:text="8" android:textSize="44sp" android:textColor="#FFFFFF" android:textStyle="bold"
+                    android:background="@drawable/btn_keypad" android:layout_marginEnd="6dp" />
+                <Button android:id="@+id/btn9" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                    android:text="9" android:textSize="44sp" android:textColor="#FFFFFF" android:textStyle="bold"
+                    android:background="@drawable/btn_keypad" />
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="0dp"
+                android:layout_weight="1" android:orientation="horizontal" android:layout_marginBottom="6dp">
+                <Button android:id="@+id/btn4" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                    android:text="4" android:textSize="44sp" android:textColor="#FFFFFF" android:textStyle="bold"
+                    android:background="@drawable/btn_keypad" android:layout_marginEnd="6dp" />
+                <Button android:id="@+id/btn5" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                    android:text="5" android:textSize="44sp" android:textColor="#FFFFFF" android:textStyle="bold"
+                    android:background="@drawable/btn_keypad" android:layout_marginEnd="6dp" />
+                <Button android:id="@+id/btn6" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                    android:text="6" android:textSize="44sp" android:textColor="#FFFFFF" android:textStyle="bold"
+                    android:background="@drawable/btn_keypad" />
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="0dp"
+                android:layout_weight="1" android:orientation="horizontal" android:layout_marginBottom="6dp">
+                <Button android:id="@+id/btn1" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                    android:text="1" android:textSize="44sp" android:textColor="#FFFFFF" android:textStyle="bold"
+                    android:background="@drawable/btn_keypad" android:layout_marginEnd="6dp" />
+                <Button android:id="@+id/btn2" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                    android:text="2" android:textSize="44sp" android:textColor="#FFFFFF" android:textStyle="bold"
+                    android:background="@drawable/btn_keypad" android:layout_marginEnd="6dp" />
+                <Button android:id="@+id/btn3" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                    android:text="3" android:textSize="44sp" android:textColor="#FFFFFF" android:textStyle="bold"
+                    android:background="@drawable/btn_keypad" />
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="0dp"
+                android:layout_weight="1" android:orientation="horizontal">
+                <Button android:id="@+id/btn0" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                    android:text="0" android:textSize="44sp" android:textColor="#FFFFFF" android:textStyle="bold"
+                    android:background="@drawable/btn_keypad" android:layout_marginEnd="6dp" />
+                <Button android:id="@+id/btnBackspace" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                    android:text="&#x2190;" android:textSize="44sp" android:textColor="#FFFFFF" android:textStyle="bold"
+                    android:background="@drawable/btn_backspace" android:layout_marginEnd="6dp" />
+                <Button android:id="@+id/btnEnter" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                    android:text="OK" android:textSize="36sp" android:textColor="#FFFFFF" android:textStyle="bold"
+                    android:background="@drawable/btn_enter" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Correct answer splash -->
+    <LinearLayout
+        android:id="@+id/splashCorrect"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="#4CAF50"
+        android:visibility="gone">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="&#x2713;"
+            android:textSize="200sp"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- End of round screen -->
+    <LinearLayout
+        android:id="@+id/endScreen"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="#FAFAFA"
+        android:visibility="gone"
+        android:padding="32dp">
+
+        <ImageView
+            android:id="@+id/imgCelebration"
+            android:layout_width="400dp"
+            android:layout_height="250dp"
+            android:scaleType="fitCenter"
+            android:layout_marginBottom="24dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tvEndMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Good job!"
+            android:textSize="42sp"
+            android:textStyle="bold"
+            android:textColor="#212121"
+            android:gravity="center"
+            android:layout_marginBottom="40dp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnPlayAgain"
+                android:layout_width="200dp"
+                android:layout_height="80dp"
+                android:text="Play Again"
+                android:textSize="22sp"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:background="@drawable/btn_enter"
+                android:layout_marginEnd="24dp" />
+
+            <Button
+                android:id="@+id/btnQuit"
+                android:layout_width="200dp"
+                android:layout_height="80dp"
+                android:text="Quit"
+                android:textSize="22sp"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:background="@drawable/btn_backspace" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+</FrameLayout>
