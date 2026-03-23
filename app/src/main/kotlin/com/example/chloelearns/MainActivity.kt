@@ -140,12 +140,14 @@ class MainActivity : AppCompatActivity() {
                 .putExtra(MathGameActivity.EXTRA_MODE, mode))
         }
 
-        findViewById<Button>(R.id.btnAdditionEasy).setOnClickListener { launchGame(MathGameActivity.GAME_ADDITION,    MathGameActivity.MODE_EASY) }
-        findViewById<Button>(R.id.btnAdditionHard).setOnClickListener { launchGame(MathGameActivity.GAME_ADDITION,    MathGameActivity.MODE_HARD) }
-        findViewById<Button>(R.id.btnMinusEasy).setOnClickListener    { launchGame(MathGameActivity.GAME_SUBTRACTION, MathGameActivity.MODE_EASY) }
-        findViewById<Button>(R.id.btnMinusHard).setOnClickListener    { launchGame(MathGameActivity.GAME_SUBTRACTION, MathGameActivity.MODE_HARD) }
+        findViewById<Button>(R.id.btnAdditionEasy).setOnClickListener { playAssetSound("audio/menu/easy.mp3"); launchGame(MathGameActivity.GAME_ADDITION,    MathGameActivity.MODE_EASY) }
+        findViewById<Button>(R.id.btnAdditionHard).setOnClickListener { playAssetSound("audio/menu/hard.mp3"); launchGame(MathGameActivity.GAME_ADDITION,    MathGameActivity.MODE_HARD) }
+        findViewById<Button>(R.id.btnMinusEasy).setOnClickListener    { playAssetSound("audio/menu/easy.mp3"); launchGame(MathGameActivity.GAME_SUBTRACTION, MathGameActivity.MODE_EASY) }
+        findViewById<Button>(R.id.btnMinusHard).setOnClickListener    { playAssetSound("audio/menu/hard.mp3"); launchGame(MathGameActivity.GAME_SUBTRACTION, MathGameActivity.MODE_HARD) }
         findViewById<Button>(R.id.btnHistory).setOnClickListener      { startActivity(Intent(this, HistoryActivity::class.java)) }
         findViewById<TextView>(R.id.txtTitle).setOnClickListener     { playAssetSound("audio/chloe-learns-math.mp3") }
+        findViewById<TextView>(R.id.txtAddition).setOnClickListener  { playAssetSound("audio/menu/addition.mp3") }
+        findViewById<TextView>(R.id.txtMinus).setOnClickListener     { playAssetSound("audio/menu/minus.mp3") }
 
         charFiles = (assets.list("images/characters") ?: emptyArray())
             .filter { it.endsWith(".png") }.toTypedArray()

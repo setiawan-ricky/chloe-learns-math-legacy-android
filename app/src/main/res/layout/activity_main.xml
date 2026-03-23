@@ -61,6 +61,7 @@
             android:paddingEnd="12dp">
 
             <TextView
+                android:id="@+id/txtAddition"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="ADDITION"
@@ -68,7 +69,9 @@
                 android:textStyle="bold"
                 android:textColor="#9E9E9E"
                 android:letterSpacing="0.10"
-                android:layout_marginBottom="10dp" />
+                android:layout_marginBottom="10dp"
+                android:clickable="true"
+                android:focusable="true" />
 
             <Button
                 android:id="@+id/btnAdditionEasy"
@@ -109,6 +112,7 @@
             android:paddingStart="12dp">
 
             <TextView
+                android:id="@+id/txtMinus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="MINUS"
@@ -116,7 +120,9 @@
                 android:textStyle="bold"
                 android:textColor="#9E9E9E"
                 android:letterSpacing="0.10"
-                android:layout_marginBottom="10dp" />
+                android:layout_marginBottom="10dp"
+                android:clickable="true"
+                android:focusable="true" />
 
             <Button
                 android:id="@+id/btnMinusEasy"

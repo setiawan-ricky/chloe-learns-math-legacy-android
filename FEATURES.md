@@ -14,6 +14,8 @@ Changes are always made there first, then ported here.
 - [x] Explosion image: asymmetric jagged burst (not a star)
 - [x] Bouncing speed: base (3.5 + rand*2.5) * 1.5 * 0.75
 - [x] Game selection: Addition (Easy/Hard), Minus (Easy/Hard)
+- [x] "ADDITION" / "MINUS" labels play corresponding audio on tap
+- [x] Easy/Hard buttons play corresponding audio on tap
 - [x] History button
 
 ## Math Game
@@ -57,6 +59,7 @@ Changes are always made there first, then ported here.
 - [x] timeout/ (2 clips)
 - [x] laser.mp3
 - [x] chloe-learns-math.mp3
+- [x] menu/ (4 clips: easy, hard, addition, minus)
 
 ## Image Assets
 

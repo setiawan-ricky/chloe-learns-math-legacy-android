@@ -4,7 +4,7 @@ This is the legacy native Android (Kotlin) implementation of Chloe Learns Math, 
 
 ## Cross-Project Sync
 
-The canonical implementation is the Expo React Native project at `../chloe-learns`. Do not make changes here first. The workflow is:
+The canonical implementation is the Expo React Native project at [setiawan-ricky/chloe-learns-math](https://github.com/setiawan-ricky/chloe-learns-math). Do not make changes here first. The workflow is:
 
 1. All feature and behavior changes are made in the Expo project first.
 2. Changes are then ported to this project.
