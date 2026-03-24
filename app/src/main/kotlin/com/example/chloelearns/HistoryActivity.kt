@@ -12,8 +12,12 @@ import androidx.appcompat.app.AppCompatActivity
 
 class HistoryActivity : AppCompatActivity() {
 
+    private lateinit var font: Typeface
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        font = Typeface.createFromAsset(assets, "fonts/BubblegumSans-Regular.ttf")
 
         val prefs = getSharedPreferences("chloe_prefs", MODE_PRIVATE)
         val raw = prefs.getString(MathGameActivity.HISTORY_KEY, "") ?: ""
@@ -30,8 +34,9 @@ class HistoryActivity : AppCompatActivity() {
             setBackgroundColor(0xFF3F51B5.toInt())
         }
         header.addView(TextView(this).apply {
-            text = "\u2190  History"
+            text = "\u2190  history"
             textSize = 22f
+            typeface = font
             setTextColor(0xFFFFFFFF.toInt())
             setOnClickListener { finish() }
         })
@@ -39,14 +44,15 @@ class HistoryActivity : AppCompatActivity() {
 
         if (raw.isBlank()) {
             root.addView(TextView(this).apply {
-                text = "No games played yet!"
+                text = "no games played yet!"
                 textSize = 20f
+                typeface = font
                 setTextColor(0xFF9E9E9E.toInt())
                 gravity = Gravity.CENTER
                 setPadding(dp(24), dp(48), dp(24), dp(24))
             })
         } else {
-            root.addView(makeRow(this, "Game", "Mode", "Score", "Time", "Date", isHeader = true))
+            root.addView(makeRow(this, "game", "mode", "score", "time", "date", isHeader = true))
             val lines = raw.split("\n").filter { it.isNotBlank() }
             for (line in lines) {
                 val p = line.split("|")
@@ -94,19 +100,15 @@ class HistoryActivity : AppCompatActivity() {
             row.addView(TextView(ctx).apply {
                 text = col.text
                 textSize = if (isHeader) 15f else 17f
+                typeface = font
                 setTextColor(0xFF212121.toInt())
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, col.weight)
                 if (isHeader) {
                     setTextColor(0xFF757575.toInt())
-                    setTypeface(null, Typeface.BOLD)
                 } else if (col === cols[0]) {
-                    // colour-code game type
                     setTextColor(if (game == MathGameActivity.GAME_ADDITION) 0xFF3F51B5.toInt() else 0xFF9C27B0.toInt())
-                    setTypeface(null, Typeface.BOLD)
                 } else if (col === cols[1]) {
-                    // colour-code mode
                     setTextColor(if (mode == MathGameActivity.MODE_EASY) 0xFF43A047.toInt() else 0xFFE53935.toInt())
-                    setTypeface(null, Typeface.BOLD)
                 }
             })
         }

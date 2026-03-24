@@ -32,8 +32,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Score: 0"
-                    android:textSize="28sp"
+                    android:text="score: 0"
+                    android:textSize="40sp"
                     android:textColor="#757575" />
 
                 <TextView
@@ -41,7 +41,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="EASY"
-                    android:textSize="20sp"
+                    android:textSize="32sp"
                     android:textStyle="bold"
                     android:textColor="#43A047"
                     android:layout_marginEnd="20dp" />
@@ -51,7 +51,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="1 / 5"
-                    android:textSize="28sp"
+                    android:textSize="40sp"
                     android:textColor="#757575"
                     android:layout_marginEnd="24dp" />
 
@@ -60,7 +60,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="15"
-                    android:textSize="36sp"
+                    android:textSize="48sp"
                     android:textStyle="bold"
                     android:textColor="#757575" />
 
@@ -189,7 +189,7 @@
                     android:text="&#x2190;" android:textSize="44sp" android:textColor="#FFFFFF" android:textStyle="bold"
                     android:background="@drawable/btn_backspace" android:layout_marginEnd="6dp" />
                 <Button android:id="@+id/btnEnter" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
-                    android:text="OK" android:textSize="36sp" android:textColor="#FFFFFF" android:textStyle="bold"
+                    android:text="ok" android:textAllCaps="false" android:textSize="36sp" android:textColor="#FFFFFF" android:textStyle="bold"
                     android:background="@drawable/btn_enter" />
             </LinearLayout>
 
@@ -203,7 +203,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:gravity="center"
-        android:background="#4CAF50"
+        android:background="#9943A047"
         android:visibility="gone">
         <TextView
             android:layout_width="wrap_content"
@@ -237,7 +237,7 @@
             android:id="@+id/tvEndMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Good job!"
+            android:text="good job!"
             android:textSize="42sp"
             android:textStyle="bold"
             android:textColor="#212121"
@@ -253,7 +253,8 @@
                 android:id="@+id/btnPlayAgain"
                 android:layout_width="200dp"
                 android:layout_height="80dp"
-                android:text="Play Again"
+                android:text="play again"
+                android:textAllCaps="false"
                 android:textSize="22sp"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold"
@@ -264,7 +265,8 @@
                 android:id="@+id/btnQuit"
                 android:layout_width="200dp"
                 android:layout_height="80dp"
-                android:text="Quit"
+                android:text="quit"
+                android:textAllCaps="false"
                 android:textSize="22sp"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold"

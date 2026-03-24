@@ -6,22 +6,27 @@ Changes are always made there first, then ported here.
 
 ## Home Screen
 
-- [x] Title "Chloe Learns Math" displayed at top
+- [x] Title "chloe learns math" with heart icon before and unicorn icon after
+- [x] Title "chloe" in light pink, "learns math" in light purple
 - [x] Title plays `chloe-learns-math.mp3` on tap
+- [x] Bubblegum Sans font applied throughout all screens
+- [x] All text lowercase throughout the app
 - [x] Two bouncing character images with elastic collision physics
 - [x] Tap a character to explode it (shows explosion image, fades out, respawns)
 - [x] Laser sound (`laser.mp3`) plays on character tap
 - [x] Explosion image: asymmetric jagged burst (not a star)
 - [x] Bouncing speed: base (3.5 + rand*2.5) * 1.5 * 0.75
 - [x] Game selection: Addition (Easy/Hard), Minus (Easy/Hard)
-- [x] "ADDITION" / "MINUS" labels play corresponding audio on tap
+- [x] "addition" / "minus" labels (30sp) play corresponding audio on tap
+- [x] Easy/Hard buttons use blob image backgrounds (green/red) with text overlay
+- [x] History button uses blue blob image background
 - [x] Easy/Hard buttons play corresponding audio on tap
-- [x] History button
 
 ## Math Game
 
 - [x] 5-question rounds
 - [x] Landscape orientation lock
+- [ ] Web: responsive portrait layout (N/A — native Android only)
 - [x] Custom number keypad (0-9, backspace, OK)
 - [x] Max 2-digit input
 - [x] Number range: 1-10
@@ -33,12 +38,20 @@ Changes are always made there first, then ported here.
 - [x] Wrong answer (Hard): red flash, advance after 800ms
 - [x] Timeout: advance after 800ms
 - [x] Audio feedback: random clip from correct/incorrect/timeout pools
+- [x] Game pauses timer when app is minimized, resumes on return
 - [x] Score tracking (persisted)
 - [x] Mode + game type label with color coding
 - [x] End screen: score summary, Play Again, Quit
 - [x] Perfect score: celebration image + "all correct" audio
 - [x] Score <= 1: "completion bad" audio
 - [x] Other scores: "completion" audio
+
+## Stats Screen
+
+- [x] Per-question score tracking (+1 correct, -1 wrong/timeout)
+- [x] Sortable table showing question, score, and attempts
+- [x] Color-coded scores (green=good, red=struggling)
+- [x] Reset button requiring 7 taps to reset all data (scores, history, stats)
 
 ## History Screen
 

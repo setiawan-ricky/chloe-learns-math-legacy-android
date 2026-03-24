@@ -3,6 +3,7 @@ package com.example.chloelearns
 import android.content.SharedPreferences
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.Typeface
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -28,7 +29,10 @@ class MathGameActivity : AppCompatActivity() {
         const val GAME_ADDITION    = "Addition"
         const val GAME_SUBTRACTION = "Minus"
         const val HISTORY_KEY = "game_history"
+        const val QUESTION_STATS_KEY = "question_stats"
+        const val MISTAKE_LOG_KEY = "mistake_log"
         const val MAX_HISTORY = 50
+        const val MAX_MISTAKES = 500
     }
 
     private var mode = MODE_EASY
@@ -88,8 +92,21 @@ class MathGameActivity : AppCompatActivity() {
         tvEndMessage  = findViewById(R.id.tvEndMessage)
         imgCelebration = findViewById(R.id.imgCelebration)
 
+        val font = Typeface.createFromAsset(assets, "fonts/BubblegumSans-Regular.ttf")
+        tvNum1.typeface = font
+        tvNum2.typeface = font
+        tvOperator.typeface = font
+        tvAnswer.typeface = font
+        tvScore.typeface = font
+        tvTimer.typeface = font
+        tvProgress.typeface = font
+        tvMode.typeface = font
+        tvEndMessage.typeface = font
+        findViewById<Button>(R.id.btnPlayAgain).typeface = font
+        findViewById<Button>(R.id.btnQuit).typeface = font
+
         tvOperator.text = if (game == GAME_SUBTRACTION) " \u2212 " else " + "
-        tvMode.text = "$game \u2022 $mode"
+        tvMode.text = "${game.lowercase()} \u2022 ${mode.lowercase()}"
         tvMode.setTextColor(if (mode == MODE_EASY) Color.parseColor("#43A047") else Color.parseColor("#E53935"))
 
         findViewById<Button>(R.id.btnPlayAgain).setOnClickListener { startRound() }
@@ -110,12 +127,19 @@ class MathGameActivity : AppCompatActivity() {
     }
 
     private fun setupKeypad() {
+        val font = Typeface.createFromAsset(assets, "fonts/BubblegumSans-Regular.ttf")
         for (digit in 0..9) {
             val id = resources.getIdentifier("btn$digit", "id", packageName)
-            findViewById<Button>(id).setOnClickListener { appendDigit(digit.toString()) }
+            val btn = findViewById<Button>(id)
+            btn.typeface = font
+            btn.setOnClickListener { appendDigit(digit.toString()) }
         }
-        findViewById<Button>(R.id.btnBackspace).setOnClickListener { onBackspace() }
-        findViewById<Button>(R.id.btnEnter).setOnClickListener { onEnter() }
+        val btnBack = findViewById<Button>(R.id.btnBackspace)
+        btnBack.typeface = font
+        btnBack.setOnClickListener { onBackspace() }
+        val btnEnter = findViewById<Button>(R.id.btnEnter)
+        btnEnter.typeface = font
+        btnEnter.setOnClickListener { onEnter() }
     }
 
     private fun appendDigit(d: String) {
@@ -138,6 +162,7 @@ class MathGameActivity : AppCompatActivity() {
         val correct = if (game == GAME_SUBTRACTION) num1 - num2 else num1 + num2
 
         if (answer == correct) {
+            recordQuestion(true)
             roundCorrect++
             totalScore++
             prefs.edit().putInt("math_score", totalScore).apply()
@@ -146,6 +171,8 @@ class MathGameActivity : AppCompatActivity() {
             playRandom("audio/correct")
             showCorrectSplash()
         } else {
+            recordQuestion(false)
+            recordMistake(answer)
             playRandom("audio/incorrect")
             tvAnswer.setTextColor(Color.parseColor("#F44336"))
             if (mode == MODE_HARD) {
@@ -182,17 +209,17 @@ class MathGameActivity : AppCompatActivity() {
             roundCorrect == roundSize -> {
                 playRandom("audio/all-correct")
                 showRandomCelebration()
-                tvEndMessage.text = "Amazing!\nPerfect score! \uD83C\uDF89"
+                tvEndMessage.text = "amazing!\nperfect score! \uD83C\uDF89"
             }
             roundCorrect <= 1 -> {
                 playRandom("audio/completion-bad")
                 imgCelebration.visibility = View.GONE
-                tvEndMessage.text = "Keep practising!\n$roundCorrect out of $roundSize correct"
+                tvEndMessage.text = "keep practising!\n$roundCorrect out of $roundSize correct"
             }
             else -> {
                 playRandom("audio/completion")
                 imgCelebration.visibility = View.GONE
-                tvEndMessage.text = "Good job!\n$roundCorrect out of $roundSize correct"
+                tvEndMessage.text = "good job!\n$roundCorrect out of $roundSize correct"
             }
         }
         endScreen.visibility = View.VISIBLE
@@ -232,6 +259,8 @@ class MathGameActivity : AppCompatActivity() {
             }
             override fun onFinish() {
                 tvTimer.text = "0"
+                recordQuestion(false)
+                recordMistake(null)
                 playRandom("audio/timeout")
                 tvAnswer.setTextColor(Color.parseColor("#F44336"))
                 handler.postDelayed({ advanceQuestion() }, 800)
@@ -279,8 +308,100 @@ class MathGameActivity : AppCompatActivity() {
         prefs.edit().putString(HISTORY_KEY, lines.joinToString("\n")).apply()
     }
 
+    private var pausedTimeLeft = -1L
+
+    override fun onPause() {
+        super.onPause()
+        if (roundInProgress) {
+            countDownTimer?.cancel()
+            countDownTimer = null
+            val displayed = tvTimer.text.toString().toIntOrNull() ?: 0
+            pausedTimeLeft = displayed.toLong()
+        }
+        handler.removeCallbacksAndMessages(null)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (roundInProgress && pausedTimeLeft > 0) {
+            resumeTimer(pausedTimeLeft)
+            pausedTimeLeft = -1
+        }
+    }
+
+    private fun resumeTimer(secondsLeft: Long) {
+        tvTimer.text = secondsLeft.toString()
+        val warn = if (mode == MODE_EASY) 8 else 5
+        tvTimer.setTextColor(
+            if (secondsLeft <= warn) Color.parseColor("#F44336")
+            else Color.parseColor("#757575")
+        )
+        countDownTimer = object : CountDownTimer(secondsLeft * 1000L, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                val seconds = ((millisUntilFinished + 999) / 1000).toInt()
+                tvTimer.text = seconds.toString()
+                tvTimer.setTextColor(
+                    if (seconds <= warn) Color.parseColor("#F44336")
+                    else Color.parseColor("#757575")
+                )
+            }
+            override fun onFinish() {
+                tvTimer.text = "0"
+                recordQuestion(false)
+                recordMistake(null)
+                playRandom("audio/timeout")
+                tvAnswer.setTextColor(Color.parseColor("#F44336"))
+                handler.postDelayed({ advanceQuestion() }, 800)
+            }
+        }.start()
+    }
+
+    private fun recordQuestion(correct: Boolean) {
+        val op = if (game == GAME_SUBTRACTION) "-" else "+"
+        val key = "$game:$num1$op$num2"
+        val raw = prefs.getString(QUESTION_STATS_KEY, "") ?: ""
+        // format per line: key|score|attempts|game|num1|num2
+        data class Entry(var score: Int, var attempts: Int, val game: String, val num1: Int, val num2: Int)
+        val stats = mutableMapOf<String, Entry>()
+        if (raw.isNotBlank()) {
+            for (line in raw.split("\n").filter { it.isNotBlank() }) {
+                val p = line.split("|")
+                if (p.size >= 6) {
+                    stats[p[0]] = Entry(
+                        p[1].toIntOrNull() ?: 0,
+                        p[2].toIntOrNull() ?: 0,
+                        p[3],
+                        p[4].toIntOrNull() ?: 0,
+                        p[5].toIntOrNull() ?: 0
+                    )
+                }
+            }
+        }
+        val entry = stats.getOrPut(key) { Entry(0, 0, game, num1, num2) }
+        entry.score += if (correct) 1 else -1
+        entry.attempts += 1
+        val serialized = stats.entries.joinToString("\n") {
+            "${it.key}|${it.value.score}|${it.value.attempts}|${it.value.game}|${it.value.num1}|${it.value.num2}"
+        }
+        prefs.edit().putString(QUESTION_STATS_KEY, serialized).apply()
+    }
+
+    private fun recordMistake(givenAnswer: Int?) {
+        val op = if (game == GAME_SUBTRACTION) "-" else "+"
+        val key = "$game:$num1$op$num2"
+        val correctAns = if (game == GAME_SUBTRACTION) num1 - num2 else num1 + num2
+        val timestamp = SimpleDateFormat("dd MMM yyyy HH:mm", Locale.getDefault()).format(Date())
+        // format: key|givenAnswer|correctAnswer|game|num1|num2|date
+        val entry = "$key|${givenAnswer ?: "timeout"}|$correctAns|$game|$num1|$num2|$timestamp"
+        val raw = prefs.getString(MISTAKE_LOG_KEY, "") ?: ""
+        val lines = if (raw.isBlank()) mutableListOf() else raw.split("\n").toMutableList()
+        lines.add(0, entry)
+        if (lines.size > MAX_MISTAKES) lines.subList(MAX_MISTAKES, lines.size).clear()
+        prefs.edit().putString(MISTAKE_LOG_KEY, lines.joinToString("\n")).apply()
+    }
+
     private fun updateScore() {
-        tvScore.text = "Score: $totalScore"
+        tvScore.text = "score: $totalScore"
     }
 
     override fun onDestroy() {

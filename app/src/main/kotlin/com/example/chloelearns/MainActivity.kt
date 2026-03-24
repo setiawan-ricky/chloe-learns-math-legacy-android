@@ -4,13 +4,14 @@ import android.content.Intent
 import android.content.res.AssetFileDescriptor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Typeface
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import kotlin.math.abs
@@ -134,20 +135,54 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val font = Typeface.createFromAsset(assets, "fonts/BubblegumSans-Regular.ttf")
+
+        // Load blob button images
+        val bmpGreen = BitmapFactory.decodeStream(assets.open("images/menu/btn-green.png"))
+        val bmpRed   = BitmapFactory.decodeStream(assets.open("images/menu/btn-red.png"))
+        val bmpBlue  = BitmapFactory.decodeStream(assets.open("images/menu/btn-blue.png"))
+
+        findViewById<ImageView>(R.id.imgBtnAdditionEasy).setImageBitmap(bmpGreen)
+        findViewById<ImageView>(R.id.imgBtnAdditionHard).setImageBitmap(bmpRed)
+        findViewById<ImageView>(R.id.imgBtnMinusEasy).setImageBitmap(bmpGreen)
+        findViewById<ImageView>(R.id.imgBtnMinusHard).setImageBitmap(bmpRed)
+        findViewById<ImageView>(R.id.imgBtnHistory).setImageBitmap(bmpBlue)
+        findViewById<ImageView>(R.id.imgBtnStats).setImageBitmap(bmpBlue)
+
+        // Load title icons
+        findViewById<ImageView>(R.id.imgHeart).setImageBitmap(
+            BitmapFactory.decodeStream(assets.open("images/menu/heart.png")))
+        findViewById<ImageView>(R.id.imgUnicorn).setImageBitmap(
+            BitmapFactory.decodeStream(assets.open("images/menu/unicorn.png")))
+
+        // Apply font to all text
+        fun applyFont(id: Int) { findViewById<TextView>(id).typeface = font }
+        applyFont(R.id.txtChloe)
+        applyFont(R.id.txtLearnsMath)
+        applyFont(R.id.txtAddition)
+        applyFont(R.id.txtMinus)
+        applyFont(R.id.txtBtnAdditionEasy)
+        applyFont(R.id.txtBtnAdditionHard)
+        applyFont(R.id.txtBtnMinusEasy)
+        applyFont(R.id.txtBtnMinusHard)
+        applyFont(R.id.txtBtnHistory)
+        applyFont(R.id.txtBtnStats)
+
         fun launchGame(game: String, mode: String) {
             startActivity(Intent(this, MathGameActivity::class.java)
                 .putExtra(MathGameActivity.EXTRA_GAME, game)
                 .putExtra(MathGameActivity.EXTRA_MODE, mode))
         }
 
-        findViewById<Button>(R.id.btnAdditionEasy).setOnClickListener { playAssetSound("audio/menu/easy.mp3"); launchGame(MathGameActivity.GAME_ADDITION,    MathGameActivity.MODE_EASY) }
-        findViewById<Button>(R.id.btnAdditionHard).setOnClickListener { playAssetSound("audio/menu/hard.mp3"); launchGame(MathGameActivity.GAME_ADDITION,    MathGameActivity.MODE_HARD) }
-        findViewById<Button>(R.id.btnMinusEasy).setOnClickListener    { playAssetSound("audio/menu/easy.mp3"); launchGame(MathGameActivity.GAME_SUBTRACTION, MathGameActivity.MODE_EASY) }
-        findViewById<Button>(R.id.btnMinusHard).setOnClickListener    { playAssetSound("audio/menu/hard.mp3"); launchGame(MathGameActivity.GAME_SUBTRACTION, MathGameActivity.MODE_HARD) }
-        findViewById<Button>(R.id.btnHistory).setOnClickListener      { startActivity(Intent(this, HistoryActivity::class.java)) }
-        findViewById<TextView>(R.id.txtTitle).setOnClickListener     { playAssetSound("audio/chloe-learns-math.mp3") }
-        findViewById<TextView>(R.id.txtAddition).setOnClickListener  { playAssetSound("audio/menu/addition.mp3") }
-        findViewById<TextView>(R.id.txtMinus).setOnClickListener     { playAssetSound("audio/menu/minus.mp3") }
+        findViewById<FrameLayout>(R.id.btnAdditionEasy).setOnClickListener { playAssetSound("audio/menu/easy.mp3"); launchGame(MathGameActivity.GAME_ADDITION,    MathGameActivity.MODE_EASY) }
+        findViewById<FrameLayout>(R.id.btnAdditionHard).setOnClickListener { playAssetSound("audio/menu/hard.mp3"); launchGame(MathGameActivity.GAME_ADDITION,    MathGameActivity.MODE_HARD) }
+        findViewById<FrameLayout>(R.id.btnMinusEasy).setOnClickListener    { playAssetSound("audio/menu/easy.mp3"); launchGame(MathGameActivity.GAME_SUBTRACTION, MathGameActivity.MODE_EASY) }
+        findViewById<FrameLayout>(R.id.btnMinusHard).setOnClickListener    { playAssetSound("audio/menu/hard.mp3"); launchGame(MathGameActivity.GAME_SUBTRACTION, MathGameActivity.MODE_HARD) }
+        findViewById<FrameLayout>(R.id.btnHistory).setOnClickListener      { startActivity(Intent(this, HistoryActivity::class.java)) }
+        findViewById<FrameLayout>(R.id.btnStats).setOnClickListener        { startActivity(Intent(this, StatsActivity::class.java)) }
+        findViewById<LinearLayout>(R.id.titleRow).setOnClickListener       { playAssetSound("audio/chloe-learns-math.mp3") }
+        findViewById<TextView>(R.id.txtAddition).setOnClickListener        { playAssetSound("audio/menu/addition.mp3") }
+        findViewById<TextView>(R.id.txtMinus).setOnClickListener           { playAssetSound("audio/menu/minus.mp3") }
 
         charFiles = (assets.list("images/characters") ?: emptyArray())
             .filter { it.endsWith(".png") }.toTypedArray()
