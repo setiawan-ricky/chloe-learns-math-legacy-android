@@ -41,11 +41,41 @@
             android:textColor="#B39DDB" />
 
         <ImageView
-            android:id="@+id/imgUnicorn"
+            android:id="@+id/imgBlackboard"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:scaleType="fitCenter"
             android:layout_marginStart="6dp" />
+
+    </LinearLayout>
+
+    <!-- Language flag selector -->
+    <LinearLayout
+        android:id="@+id/flagRow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:orientation="horizontal"
+        android:paddingBottom="8dp">
+
+        <ImageView
+            android:id="@+id/imgFlagUs"
+            android:layout_width="48dp"
+            android:layout_height="32dp"
+            android:scaleType="fitCenter"
+            android:layout_marginEnd="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="4dp" />
+
+        <ImageView
+            android:id="@+id/imgFlagCn"
+            android:layout_width="48dp"
+            android:layout_height="32dp"
+            android:scaleType="fitCenter"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="4dp" />
 
     </LinearLayout>
 
@@ -65,6 +95,12 @@
 
         <ImageView
             android:id="@+id/imgBounce2"
+            android:layout_width="110dp"
+            android:layout_height="110dp"
+            android:scaleType="fitCenter" />
+
+        <ImageView
+            android:id="@+id/imgBounce3"
             android:layout_width="110dp"
             android:layout_height="110dp"
             android:scaleType="fitCenter" />
@@ -137,7 +173,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:scaleType="fitCenter"
-                    android:src="@color/transparent"
                     android:id="@+id/imgBtnAdditionHard" />
                 <TextView
                     android:layout_width="match_parent"
@@ -155,11 +190,36 @@
 
         </LinearLayout>
 
-        <!-- Divider -->
-        <View
-            android:layout_width="1dp"
+        <!-- Games played today counter -->
+        <LinearLayout
+            android:id="@+id/todayCounter"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:background="#E0E0E0" />
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:id="@+id/txtTodayCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textSize="48sp"
+                android:textColor="#3F51B5" />
+
+            <TextView
+                android:id="@+id/txtTodayLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="times played today"
+                android:textSize="12sp"
+                android:textColor="#9E9E9E"
+                android:gravity="center" />
+
+        </LinearLayout>
 
         <!-- Minus column -->
         <LinearLayout
@@ -234,6 +294,7 @@
             </FrameLayout>
 
         </LinearLayout>
+
     </LinearLayout>
 
     <!-- Bottom row: history + stats -->

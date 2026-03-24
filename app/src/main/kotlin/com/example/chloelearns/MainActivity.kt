@@ -1,6 +1,7 @@
 package com.example.chloelearns
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.res.AssetFileDescriptor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -14,6 +15,10 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
@@ -22,11 +27,21 @@ import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
 
+    companion object {
+        const val PREF_NAME = "chloe_prefs"
+        const val PREF_LANG = "app_language"
+    }
+
     private lateinit var bounceZone: FrameLayout
     private lateinit var explosionBitmap: Bitmap
     private var charFiles: Array<String> = emptyArray()
     private val handler = Handler(Looper.getMainLooper())
     private val activePlayers = mutableListOf<MediaPlayer>()
+    private lateinit var prefs: SharedPreferences
+    private var lang: String = "en"
+
+    private lateinit var flagUs: ImageView
+    private lateinit var flagCn: ImageView
 
     private fun playAssetSound(path: String) {
         try {
@@ -44,6 +59,68 @@ class MainActivity : AppCompatActivity() {
         } catch (_: Exception) {}
     }
 
+    private fun langAudio(relativePath: String): String = "audio/$lang/$relativePath"
+
+    private fun setLang(newLang: String) {
+        lang = newLang
+        prefs.edit().putString(PREF_LANG, lang).apply()
+        updateFlagAlpha()
+        updateLabels()
+    }
+
+    private fun updateFlagAlpha() {
+        flagUs.alpha = if (lang == "en") 1f else 0.35f
+        flagCn.alpha = if (lang == "zh") 1f else 0.35f
+    }
+
+    private fun updateGamesToday() {
+        val raw = prefs.getString(MathGameActivity.HISTORY_KEY, "") ?: ""
+        if (raw.isBlank()) {
+            findViewById<TextView>(R.id.txtTodayCount).text = "0"
+            return
+        }
+        val sdf = SimpleDateFormat("dd MMM yyyy", Locale.US)
+        sdf.timeZone = TimeZone.getTimeZone("America/Los_Angeles")
+        val todayStr = sdf.format(Date())
+        val count = raw.split("\n").filter { it.isNotBlank() }.count { line ->
+            // format: game|mode|correct|total|secs|date
+            val p = line.split("|")
+            if (p.size >= 6) {
+                val datePart = p[5].replace(Regex("\\s+\\d{1,2}:\\d{2}$"), "")
+                datePart == todayStr
+            } else false
+        }
+        findViewById<TextView>(R.id.txtTodayCount).text = count.toString()
+    }
+
+    private fun updateLabels() {
+        if (lang == "zh") {
+            findViewById<TextView>(R.id.txtChloe).text = "紫怡"
+            findViewById<TextView>(R.id.txtLearnsMath).text = "学数学"
+            findViewById<TextView>(R.id.txtAddition).text = "加法"
+            findViewById<TextView>(R.id.txtMinus).text = "减法"
+            findViewById<TextView>(R.id.txtBtnAdditionEasy).text = "简单"
+            findViewById<TextView>(R.id.txtBtnAdditionHard).text = "困难"
+            findViewById<TextView>(R.id.txtBtnMinusEasy).text = "简单"
+            findViewById<TextView>(R.id.txtBtnMinusHard).text = "困难"
+            findViewById<TextView>(R.id.txtBtnHistory).text = "历史"
+            findViewById<TextView>(R.id.txtBtnStats).text = "统计"
+            findViewById<TextView>(R.id.txtTodayLabel).text = "今天玩的次数"
+        } else {
+            findViewById<TextView>(R.id.txtChloe).text = "chloe "
+            findViewById<TextView>(R.id.txtLearnsMath).text = "learns math"
+            findViewById<TextView>(R.id.txtAddition).text = "addition"
+            findViewById<TextView>(R.id.txtMinus).text = "minus"
+            findViewById<TextView>(R.id.txtBtnAdditionEasy).text = "easy"
+            findViewById<TextView>(R.id.txtBtnAdditionHard).text = "hard"
+            findViewById<TextView>(R.id.txtBtnMinusEasy).text = "easy"
+            findViewById<TextView>(R.id.txtBtnMinusHard).text = "hard"
+            findViewById<TextView>(R.id.txtBtnHistory).text = "history"
+            findViewById<TextView>(R.id.txtBtnStats).text = "stats"
+            findViewById<TextView>(R.id.txtTodayLabel).text = "times played today"
+        }
+    }
+
     inner class BounceState(val img: ImageView) {
         var x = 0f
         var y = 0f
@@ -53,12 +130,12 @@ class MainActivity : AppCompatActivity() {
         var exploding = false
 
         fun randomVelocity() {
-            val speed = (3.5f + Random.nextFloat() * 2.5f) * 1.5f * 0.75f
+            val speed = (3.5f + Random.nextFloat() * 2.5f) * 1.5f * 0.75f * 0.5f
             val angle = Random.nextFloat() * (2.0 * Math.PI).toFloat()
             vx = speed * cos(angle.toDouble()).toFloat()
             vy = speed * sin(angle.toDouble()).toFloat()
-            if (abs(vx) < 2f) vx = if (vx >= 0) 2f else -2f
-            if (abs(vy) < 2f) vy = if (vy >= 0) 2f else -2f
+            if (abs(vx) < 1f) vx = if (vx >= 0) 1f else -1f
+            if (abs(vy) < 1f) vy = if (vy >= 0) 1f else -1f
         }
 
         fun loadCharacter(skipIndex: Int) {
@@ -71,19 +148,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private lateinit var b1: BounceState
-    private lateinit var b2: BounceState
+    private val bouncers = mutableListOf<BounceState>()
 
     private val bounceRunnable = object : Runnable {
         override fun run() {
-            val img1 = b1.img
-            if (img1.width == 0) { handler.postDelayed(this, 16); return }
+            if (bouncers.isEmpty() || bouncers[0].img.width == 0) { handler.postDelayed(this, 16); return }
 
-            val maxX = (bounceZone.width  - img1.width ).toFloat().coerceAtLeast(0f)
-            val maxY = (bounceZone.height - img1.height).toFloat().coerceAtLeast(0f)
-            val sz   = img1.width.toFloat()   // both images same size
+            val sz = bouncers[0].img.width.toFloat()
+            val maxX = (bounceZone.width  - sz).coerceAtLeast(0f)
+            val maxY = (bounceZone.height - sz).coerceAtLeast(0f)
 
-            for (b in listOf(b1, b2)) {
+            for (b in bouncers) {
                 if (b.exploding) continue
                 b.x += b.vx
                 b.y += b.vy
@@ -95,35 +170,26 @@ class MainActivity : AppCompatActivity() {
                 b.img.y = b.y
             }
 
-            // Elastic collision between the two images (equal mass, axis-aligned swap)
-            if (!b1.exploding && !b2.exploding) {
-                val dx = (b1.x + sz / 2f) - (b2.x + sz / 2f)
-                val dy = (b1.y + sz / 2f) - (b2.y + sz / 2f)
-                val dist = sqrt(dx * dx + dy * dy)
-                if (dist < sz && dist > 0f) {
-                    // Normalize collision axis
+            for (i in bouncers.indices) {
+                for (j in i + 1 until bouncers.size) {
+                    val a = bouncers[i]
+                    val b = bouncers[j]
+                    if (a.exploding || b.exploding) continue
+                    val dx = (a.x + sz / 2f) - (b.x + sz / 2f)
+                    val dy = (a.y + sz / 2f) - (b.y + sz / 2f)
+                    val dist = sqrt(dx * dx + dy * dy)
+                    if (dist >= sz || dist == 0f) continue
                     val nx = dx / dist
                     val ny = dy / dist
-                    // Relative velocity along axis
-                    val dvx = b1.vx - b2.vx
-                    val dvy = b1.vy - b2.vy
-                    val dot = dvx * nx + dvy * ny
-                    if (dot < 0f) {   // only resolve if approaching
-                        b1.vx -= dot * nx
-                        b1.vy -= dot * ny
-                        b2.vx += dot * nx
-                        b2.vy += dot * ny
-                        // Separate to avoid sticking
-                        val overlap = sz - dist
-                        b1.x += nx * overlap / 2f
-                        b1.y += ny * overlap / 2f
-                        b2.x -= nx * overlap / 2f
-                        b2.y -= ny * overlap / 2f
-                        b1.img.x = b1.x
-                        b1.img.y = b1.y
-                        b2.img.x = b2.x
-                        b2.img.y = b2.y
-                    }
+                    val dot = (a.vx - b.vx) * nx + (a.vy - b.vy) * ny
+                    if (dot >= 0f) continue
+                    a.vx -= dot * nx; a.vy -= dot * ny
+                    b.vx += dot * nx; b.vy += dot * ny
+                    val overlap = sz - dist
+                    a.x += nx * overlap / 2f; a.y += ny * overlap / 2f
+                    b.x -= nx * overlap / 2f; b.y -= ny * overlap / 2f
+                    a.img.x = a.x; a.img.y = a.y
+                    b.img.x = b.x; b.img.y = b.y
                 }
             }
 
@@ -135,25 +201,39 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE)
+        lang = prefs.getString(PREF_LANG, "en") ?: "en"
+
         val font = Typeface.createFromAsset(assets, "fonts/BubblegumSans-Regular.ttf")
 
+        // Flags
+        flagUs = findViewById(R.id.imgFlagUs)
+        flagCn = findViewById(R.id.imgFlagCn)
+        flagUs.setImageBitmap(BitmapFactory.decodeStream(assets.open("images/menu/flag-us.png")))
+        flagCn.setImageBitmap(BitmapFactory.decodeStream(assets.open("images/menu/flag-cn.png")))
+        flagUs.setOnClickListener { setLang("en") }
+        flagCn.setOnClickListener { setLang("zh") }
+        updateFlagAlpha()
+
         // Load blob button images
-        val bmpGreen = BitmapFactory.decodeStream(assets.open("images/menu/btn-green.png"))
-        val bmpRed   = BitmapFactory.decodeStream(assets.open("images/menu/btn-red.png"))
-        val bmpBlue  = BitmapFactory.decodeStream(assets.open("images/menu/btn-blue.png"))
+        val bmpGreen  = BitmapFactory.decodeStream(assets.open("images/menu/btn-green.png"))
+        val bmpRed    = BitmapFactory.decodeStream(assets.open("images/menu/btn-red.png"))
+        val bmpBlue   = BitmapFactory.decodeStream(assets.open("images/menu/btn-blue.png"))
+        val bmpOrange = BitmapFactory.decodeStream(assets.open("images/menu/btn-orange.png"))
 
         findViewById<ImageView>(R.id.imgBtnAdditionEasy).setImageBitmap(bmpGreen)
         findViewById<ImageView>(R.id.imgBtnAdditionHard).setImageBitmap(bmpRed)
         findViewById<ImageView>(R.id.imgBtnMinusEasy).setImageBitmap(bmpGreen)
         findViewById<ImageView>(R.id.imgBtnMinusHard).setImageBitmap(bmpRed)
-        findViewById<ImageView>(R.id.imgBtnHistory).setImageBitmap(bmpBlue)
+        findViewById<ImageView>(R.id.imgBtnHistory).setImageBitmap(bmpOrange)
         findViewById<ImageView>(R.id.imgBtnStats).setImageBitmap(bmpBlue)
+
 
         // Load title icons
         findViewById<ImageView>(R.id.imgHeart).setImageBitmap(
             BitmapFactory.decodeStream(assets.open("images/menu/heart.png")))
-        findViewById<ImageView>(R.id.imgUnicorn).setImageBitmap(
-            BitmapFactory.decodeStream(assets.open("images/menu/unicorn.png")))
+        findViewById<ImageView>(R.id.imgBlackboard).setImageBitmap(
+            BitmapFactory.decodeStream(assets.open("images/menu/blackboard.png")))
 
         // Apply font to all text
         fun applyFont(id: Int) { findViewById<TextView>(id).typeface = font }
@@ -167,6 +247,8 @@ class MainActivity : AppCompatActivity() {
         applyFont(R.id.txtBtnMinusHard)
         applyFont(R.id.txtBtnHistory)
         applyFont(R.id.txtBtnStats)
+        applyFont(R.id.txtTodayCount)
+        applyFont(R.id.txtTodayLabel)
 
         fun launchGame(game: String, mode: String) {
             startActivity(Intent(this, MathGameActivity::class.java)
@@ -174,51 +256,61 @@ class MainActivity : AppCompatActivity() {
                 .putExtra(MathGameActivity.EXTRA_MODE, mode))
         }
 
-        findViewById<FrameLayout>(R.id.btnAdditionEasy).setOnClickListener { playAssetSound("audio/menu/easy.mp3"); launchGame(MathGameActivity.GAME_ADDITION,    MathGameActivity.MODE_EASY) }
-        findViewById<FrameLayout>(R.id.btnAdditionHard).setOnClickListener { playAssetSound("audio/menu/hard.mp3"); launchGame(MathGameActivity.GAME_ADDITION,    MathGameActivity.MODE_HARD) }
-        findViewById<FrameLayout>(R.id.btnMinusEasy).setOnClickListener    { playAssetSound("audio/menu/easy.mp3"); launchGame(MathGameActivity.GAME_SUBTRACTION, MathGameActivity.MODE_EASY) }
-        findViewById<FrameLayout>(R.id.btnMinusHard).setOnClickListener    { playAssetSound("audio/menu/hard.mp3"); launchGame(MathGameActivity.GAME_SUBTRACTION, MathGameActivity.MODE_HARD) }
+        findViewById<FrameLayout>(R.id.btnAdditionEasy).setOnClickListener { playAssetSound(langAudio("menu/easy.mp3")); launchGame(MathGameActivity.GAME_ADDITION,    MathGameActivity.MODE_EASY) }
+        findViewById<FrameLayout>(R.id.btnAdditionHard).setOnClickListener { playAssetSound(langAudio("menu/hard.mp3")); launchGame(MathGameActivity.GAME_ADDITION,    MathGameActivity.MODE_HARD) }
+        findViewById<FrameLayout>(R.id.btnMinusEasy).setOnClickListener    { playAssetSound(langAudio("menu/easy.mp3")); launchGame(MathGameActivity.GAME_SUBTRACTION, MathGameActivity.MODE_EASY) }
+        findViewById<FrameLayout>(R.id.btnMinusHard).setOnClickListener    { playAssetSound(langAudio("menu/hard.mp3")); launchGame(MathGameActivity.GAME_SUBTRACTION, MathGameActivity.MODE_HARD) }
         findViewById<FrameLayout>(R.id.btnHistory).setOnClickListener      { startActivity(Intent(this, HistoryActivity::class.java)) }
         findViewById<FrameLayout>(R.id.btnStats).setOnClickListener        { startActivity(Intent(this, StatsActivity::class.java)) }
-        findViewById<LinearLayout>(R.id.titleRow).setOnClickListener       { playAssetSound("audio/chloe-learns-math.mp3") }
-        findViewById<TextView>(R.id.txtAddition).setOnClickListener        { playAssetSound("audio/menu/addition.mp3") }
-        findViewById<TextView>(R.id.txtMinus).setOnClickListener           { playAssetSound("audio/menu/minus.mp3") }
+        findViewById<LinearLayout>(R.id.titleRow).setOnClickListener       { playAssetSound(langAudio("chloe-learns-math.mp3")) }
+        findViewById<TextView>(R.id.txtAddition).setOnClickListener        { playAssetSound(langAudio("menu/addition.mp3")) }
+        findViewById<TextView>(R.id.txtMinus).setOnClickListener           { playAssetSound(langAudio("menu/minus.mp3")) }
+        findViewById<LinearLayout>(R.id.todayCounter).setOnClickListener   { playAssetSound(langAudio("menu/games-today.mp3")) }
+
+        updateLabels()
+        updateGamesToday()
 
         charFiles = (assets.list("images/characters") ?: emptyArray())
             .filter { it.endsWith(".png") }.toTypedArray()
         explosionBitmap = BitmapFactory.decodeStream(assets.open("images/explosion.png"))
 
-        b1 = BounceState(findViewById(R.id.imgBounce))
-        b2 = BounceState(findViewById(R.id.imgBounce2))
         bounceZone = findViewById(R.id.bounceZone)
-
-        b1.img.setOnClickListener { onTapped(b1, b2) }
-        b2.img.setOnClickListener { onTapped(b2, b1) }
+        val bounceIds = listOf(R.id.imgBounce, R.id.imgBounce2, R.id.imgBounce3)
+        for (id in bounceIds) {
+            bouncers.add(BounceState(findViewById(id)))
+        }
+        for (b in bouncers) {
+            b.img.setOnClickListener { onTapped(b) }
+        }
 
         bounceZone.post {
             val w = bounceZone.width.toFloat()
             val h = bounceZone.height.toFloat()
-            val sz = b1.img.width.toFloat()
+            val sz = bouncers[0].img.width.toFloat()
+            val maxX = (w - sz).coerceAtLeast(0f)
+            val maxY = (h - sz).coerceAtLeast(0f)
 
-            b1.x = (w / 4f - sz / 2f).coerceIn(0f, (w - sz).coerceAtLeast(0f))
-            b1.y = (h / 2f - sz / 2f).coerceAtLeast(0f)
-            b2.x = (3f * w / 4f - sz / 2f).coerceIn(0f, (w - sz).coerceAtLeast(0f))
-            b2.y = (h / 2f - sz / 2f).coerceAtLeast(0f)
+            val positions = listOf(
+                (w / 4f - sz / 2f).coerceIn(0f, maxX) to (h / 2f - sz / 2f).coerceAtLeast(0f),
+                (3f * w / 4f - sz / 2f).coerceIn(0f, maxX) to (h / 2f - sz / 2f).coerceAtLeast(0f),
+                (w / 2f - sz / 2f).coerceIn(0f, maxX) to (h / 4f - sz / 2f).coerceAtLeast(0f)
+            )
 
-            b1.img.x = b1.x; b1.img.y = b1.y
-            b2.img.x = b2.x; b2.img.y = b2.y
-
-            b1.loadCharacter(-1)
-            b2.loadCharacter(b1.fileIndex)   // ensure different character
-
-            b1.randomVelocity()
-            b2.randomVelocity()
+            val usedIndices = mutableListOf<Int>()
+            for ((i, b) in bouncers.withIndex()) {
+                b.x = positions[i].first
+                b.y = positions[i].second
+                b.img.x = b.x; b.img.y = b.y
+                b.loadCharacter(usedIndices.lastOrNull() ?: -1)
+                usedIndices.add(b.fileIndex)
+                b.randomVelocity()
+            }
 
             handler.post(bounceRunnable)
         }
     }
 
-    private fun onTapped(tapped: BounceState, other: BounceState) {
+    private fun onTapped(tapped: BounceState) {
         if (tapped.exploding) return
         tapped.exploding = true
 
@@ -232,14 +324,15 @@ class MainActivity : AppCompatActivity() {
                 .setDuration(500)
                 .withEndAction {
                     handler.postDelayed({
-                        spawnCharacter(tapped, other.fileIndex)
+                        val skipIndices = bouncers.filter { it !== tapped && !it.exploding }.map { it.fileIndex }
+                        spawnCharacter(tapped, skipIndices)
                     }, 500)
                 }
                 .start()
         }, 1000)
     }
 
-    private fun spawnCharacter(b: BounceState, skipIndex: Int) {
+    private fun spawnCharacter(b: BounceState, skipIndices: List<Int>) {
         val maxX = (bounceZone.width  - b.img.width ).toFloat().coerceAtLeast(10f)
         val maxY = (bounceZone.height - b.img.height).toFloat().coerceAtLeast(10f)
 
@@ -249,7 +342,7 @@ class MainActivity : AppCompatActivity() {
         b.img.x = b.x
         b.img.y = b.y
 
-        b.loadCharacter(skipIndex)
+        b.loadCharacter(skipIndices.firstOrNull() ?: -1)
         b.img.alpha = 1f
         b.randomVelocity()
         b.exploding = false
@@ -257,14 +350,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (b1.img.width > 0) handler.post(bounceRunnable)
+        if (bouncers.isNotEmpty() && bouncers[0].img.width > 0) handler.post(bounceRunnable)
+        updateGamesToday()
     }
 
     override fun onPause() {
         super.onPause()
         handler.removeCallbacks(bounceRunnable)
-        b1.img.animate().cancel()
-        b2.img.animate().cancel()
+        for (b in bouncers) b.img.animate().cancel()
     }
 
     override fun onDestroy() {

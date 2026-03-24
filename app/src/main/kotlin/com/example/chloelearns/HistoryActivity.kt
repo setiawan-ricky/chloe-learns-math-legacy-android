@@ -20,7 +20,11 @@ class HistoryActivity : AppCompatActivity() {
         font = Typeface.createFromAsset(assets, "fonts/BubblegumSans-Regular.ttf")
 
         val prefs = getSharedPreferences("chloe_prefs", MODE_PRIVATE)
+        val lang = prefs.getString(MainActivity.PREF_LANG, "en") ?: "en"
         val raw = prefs.getString(MathGameActivity.HISTORY_KEY, "") ?: ""
+
+        fun gameLabel(g: String) = if (lang == "zh") (if (g == MathGameActivity.GAME_SUBTRACTION) "减法" else "加法") else g
+        fun modeLabel(m: String) = if (lang == "zh") (if (m == MathGameActivity.MODE_EASY) "简单" else "困难") else m
 
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -34,7 +38,7 @@ class HistoryActivity : AppCompatActivity() {
             setBackgroundColor(0xFF3F51B5.toInt())
         }
         header.addView(TextView(this).apply {
-            text = "\u2190  history"
+            text = if (lang == "zh") "\u2190  历史" else "\u2190  history"
             textSize = 22f
             typeface = font
             setTextColor(0xFFFFFFFF.toInt())
@@ -44,7 +48,7 @@ class HistoryActivity : AppCompatActivity() {
 
         if (raw.isBlank()) {
             root.addView(TextView(this).apply {
-                text = "no games played yet!"
+                text = if (lang == "zh") "还没有玩过游戏！" else "no games played yet!"
                 textSize = 20f
                 typeface = font
                 setTextColor(0xFF9E9E9E.toInt())
@@ -52,7 +56,12 @@ class HistoryActivity : AppCompatActivity() {
                 setPadding(dp(24), dp(48), dp(24), dp(24))
             })
         } else {
-            root.addView(makeRow(this, "game", "mode", "score", "time", "date", isHeader = true))
+            val hGame  = if (lang == "zh") "游戏" else "game"
+            val hMode  = if (lang == "zh") "难度" else "mode"
+            val hScore = if (lang == "zh") "分数" else "score"
+            val hTime  = if (lang == "zh") "时间" else "time"
+            val hDate  = if (lang == "zh") "日期" else "date"
+            root.addView(makeRow(this, hGame, hMode, hScore, hTime, hDate, isHeader = true))
             val lines = raw.split("\n").filter { it.isNotBlank() }
             for (line in lines) {
                 val p = line.split("|")
@@ -66,7 +75,7 @@ class HistoryActivity : AppCompatActivity() {
                 val secs    = p[4].toLongOrNull() ?: 0L
                 val date    = p[5]
                 val timeStr = if (secs >= 60) "${secs / 60}m ${secs % 60}s" else "${secs}s"
-                root.addView(makeRow(this, game, mode, "$correct / $total", timeStr, date))
+                root.addView(makeRow(this, gameLabel(game), modeLabel(mode), "$correct / $total", timeStr, date))
             }
         }
 

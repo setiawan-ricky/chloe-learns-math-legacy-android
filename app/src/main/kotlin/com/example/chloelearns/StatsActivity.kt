@@ -18,6 +18,7 @@ class StatsActivity : AppCompatActivity() {
     private lateinit var contentLayout: LinearLayout
     private var resetCount = 0
     private val resetTaps = 7
+    private var lang = "en"
 
     data class Stat(val key: String, val game: String, val num1: Int, val num2: Int, val score: Int, val attempts: Int)
     data class Mistake(val key: String, val givenAnswer: String, val correctAnswer: Int, val date: String)
@@ -26,6 +27,7 @@ class StatsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         font = Typeface.createFromAsset(assets, "fonts/BubblegumSans-Regular.ttf")
+        lang = getSharedPreferences("chloe_prefs", MODE_PRIVATE).getString(MainActivity.PREF_LANG, "en") ?: "en"
 
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -38,7 +40,7 @@ class StatsActivity : AppCompatActivity() {
             setBackgroundColor(0xFF3F51B5.toInt())
         }
         header.addView(TextView(this).apply {
-            text = "\u2190  stats"
+            text = if (lang == "zh") "\u2190  统计" else "\u2190  stats"
             textSize = 22f
             typeface = font
             setTextColor(0xFFFFFFFF.toInt())
@@ -68,12 +70,12 @@ class StatsActivity : AppCompatActivity() {
             typeface = font
             setTextColor(0xFF9E9E9E.toInt())
             gravity = Gravity.CENTER
-            text = "tap $resetTaps times to reset all scores and history"
+            text = if (lang == "zh") "点击${resetTaps}次重置所有分数和历史" else "tap $resetTaps times to reset all scores and history"
             setPadding(0, dp(8), 0, 0)
         }
 
         val resetBtn = TextView(this).apply {
-            text = "reset"
+            text = if (lang == "zh") "重置" else "reset"
             textSize = 16f
             typeface = font
             setTextColor(0xFFFFFFFF.toInt())
@@ -84,10 +86,10 @@ class StatsActivity : AppCompatActivity() {
                 resetCount++
                 if (resetCount >= resetTaps) {
                     AlertDialog.Builder(this@StatsActivity)
-                        .setTitle("reset all data")
-                        .setMessage("reset all scores and history?")
-                        .setNegativeButton("cancel") { _, _ -> resetCount = 0 }
-                        .setPositiveButton("reset") { _, _ ->
+                        .setTitle(if (lang == "zh") "重置所有数据" else "reset all data")
+                        .setMessage(if (lang == "zh") "重置所有分数和历史？" else "reset all scores and history?")
+                        .setNegativeButton(if (lang == "zh") "取消" else "cancel") { _, _ -> resetCount = 0 }
+                        .setPositiveButton(if (lang == "zh") "重置" else "reset") { _, _ ->
                             val prefs = getSharedPreferences("chloe_prefs", MODE_PRIVATE)
                             prefs.edit()
                                 .remove("math_score")
@@ -96,12 +98,12 @@ class StatsActivity : AppCompatActivity() {
                                 .remove(MathGameActivity.MISTAKE_LOG_KEY)
                                 .apply()
                             resetCount = 0
-                            resetHint.text = "tap $resetTaps times to reset all scores and history"
+                            resetHint.text = if (lang == "zh") "点击${resetTaps}次重置所有分数和历史" else "tap $resetTaps times to reset all scores and history"
                             buildTable()
                         }
                         .show()
                 } else {
-                    resetHint.text = "tap $resetTaps times to reset all scores and history ($resetCount/$resetTaps)"
+                    resetHint.text = if (lang == "zh") "点击${resetTaps}次重置所有分数和历史 ($resetCount/$resetTaps)" else "tap $resetTaps times to reset all scores and history ($resetCount/$resetTaps)"
                 }
             }
         }
@@ -125,7 +127,7 @@ class StatsActivity : AppCompatActivity() {
 
         if (stats.isEmpty()) {
             contentLayout.addView(TextView(this).apply {
-                text = "no questions answered yet!"
+                text = if (lang == "zh") "还没有回答过问题！" else "no questions answered yet!"
                 textSize = 20f
                 typeface = font
                 setTextColor(0xFF9E9E9E.toInt())
@@ -141,7 +143,10 @@ class StatsActivity : AppCompatActivity() {
         val list = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
 
         val allMistakes = loadMistakes()
-        list.addView(makeRow("question", "accuracy", "tries", isHeader = true))
+        val hQ = if (lang == "zh") "题目" else "question"
+        val hA = if (lang == "zh") "准确率" else "accuracy"
+        val hT = if (lang == "zh") "次数" else "tries"
+        list.addView(makeRow(hQ, hA, hT, isHeader = true))
 
         for (s in sorted) {
             val op = if (s.game == "Minus") " \u2212 " else " + "
@@ -152,7 +157,6 @@ class StatsActivity : AppCompatActivity() {
 
             val detailContainer = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
-                visibility = View.GONE
                 setPadding(dp(24), dp(8), dp(16), dp(8))
                 setBackgroundColor(0xFFFAFAFA.toInt())
             }
@@ -172,7 +176,7 @@ class StatsActivity : AppCompatActivity() {
 
             if (rowMistakes.isEmpty()) {
                 detailContainer.addView(TextView(this).apply {
-                    text = "no mistakes recorded"
+                    text = if (lang == "zh") "没有错误记录" else "no mistakes recorded"
                     textSize = 14f
                     typeface = font
                     setTextColor(0xFF9E9E9E.toInt())
@@ -184,7 +188,11 @@ class StatsActivity : AppCompatActivity() {
                         orientation = LinearLayout.HORIZONTAL
                         setPadding(0, dp(4), 0, dp(4))
                     }
-                    val label = if (m.givenAnswer == "timeout") "timeout" else "answered ${m.givenAnswer}"
+                    val label = if (m.givenAnswer == "timeout") {
+                        if (lang == "zh") "超时" else "timeout"
+                    } else {
+                        if (lang == "zh") "回答了 ${m.givenAnswer}" else "answered ${m.givenAnswer}"
+                    }
                     mRow.addView(TextView(this).apply {
                         text = label
                         textSize = 15f
@@ -203,12 +211,21 @@ class StatsActivity : AppCompatActivity() {
             }
 
             val rowView = makeRow(question, "$pct%", "${s.attempts}", scoreColor = accuracyColor(pct))
-            rowView.setOnClickListener {
+            rowView.isClickable = true
+            rowView.isFocusable = true
+            // Set click on both the wrapper and the inner row
+            val toggle = View.OnClickListener {
                 if (detailWrapper.visibility == View.VISIBLE) {
                     detailWrapper.visibility = View.GONE
                 } else {
                     detailWrapper.visibility = View.VISIBLE
                 }
+            }
+            rowView.setOnClickListener(toggle)
+            (rowView as? LinearLayout)?.getChildAt(0)?.apply {
+                isClickable = true
+                isFocusable = true
+                setOnClickListener(toggle)
             }
             list.addView(rowView)
             list.addView(detailWrapper)

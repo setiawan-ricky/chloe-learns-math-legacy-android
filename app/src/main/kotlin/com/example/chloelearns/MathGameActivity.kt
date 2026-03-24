@@ -38,6 +38,7 @@ class MathGameActivity : AppCompatActivity() {
     private var mode = MODE_EASY
     private var game = GAME_ADDITION
     private var timerSeconds = 30
+    private var lang = "en"
 
     private var num1 = 0
     private var num2 = 0
@@ -77,6 +78,7 @@ class MathGameActivity : AppCompatActivity() {
         timerSeconds = if (mode == MODE_EASY) 30 else 20
 
         prefs = getSharedPreferences("chloe_prefs", MODE_PRIVATE)
+        lang = prefs.getString(MainActivity.PREF_LANG, "en") ?: "en"
         totalScore = prefs.getInt("math_score", 0)
 
         tvNum1        = findViewById(R.id.tvNum1)
@@ -106,11 +108,20 @@ class MathGameActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnQuit).typeface = font
 
         tvOperator.text = if (game == GAME_SUBTRACTION) " \u2212 " else " + "
-        tvMode.text = "${game.lowercase()} \u2022 ${mode.lowercase()}"
+        val gameName = if (lang == "zh") (if (game == GAME_SUBTRACTION) "减法" else "加法") else game.lowercase()
+        val modeName = if (lang == "zh") (if (mode == MODE_EASY) "简单" else "困难") else mode.lowercase()
+        tvMode.text = "$gameName \u2022 $modeName"
         tvMode.setTextColor(if (mode == MODE_EASY) Color.parseColor("#43A047") else Color.parseColor("#E53935"))
 
-        findViewById<Button>(R.id.btnPlayAgain).setOnClickListener { startRound() }
-        findViewById<Button>(R.id.btnQuit).setOnClickListener { finish() }
+        val btnPlay = findViewById<Button>(R.id.btnPlayAgain)
+        val btnQuit = findViewById<Button>(R.id.btnQuit)
+        btnPlay.setOnClickListener { startRound() }
+        btnQuit.setOnClickListener { finish() }
+        if (lang == "zh") {
+            btnPlay.text = "再来一次"
+            btnQuit.text = "退出"
+            findViewById<Button>(R.id.btnEnter).text = "确定"
+        }
 
         setupKeypad()
         startRound()
@@ -168,12 +179,12 @@ class MathGameActivity : AppCompatActivity() {
             prefs.edit().putInt("math_score", totalScore).apply()
             updateScore()
             countDownTimer?.cancel()
-            playRandom("audio/correct")
+            playRandom("audio/$lang/correct")
             showCorrectSplash()
         } else {
             recordQuestion(false)
             recordMistake(answer)
-            playRandom("audio/incorrect")
+            playRandom("audio/$lang/incorrect")
             tvAnswer.setTextColor(Color.parseColor("#F44336"))
             if (mode == MODE_HARD) {
                 handler.postDelayed({ advanceQuestion() }, 800)
@@ -207,19 +218,19 @@ class MathGameActivity : AppCompatActivity() {
 
         when {
             roundCorrect == roundSize -> {
-                playRandom("audio/all-correct")
+                playRandom("audio/$lang/all-correct")
                 showRandomCelebration()
-                tvEndMessage.text = "amazing!\nperfect score! \uD83C\uDF89"
+                tvEndMessage.text = if (lang == "zh") "太厉害了！\n满分！\uD83C\uDF89" else "amazing!\nperfect score! \uD83C\uDF89"
             }
             roundCorrect <= 1 -> {
-                playRandom("audio/completion-bad")
+                playRandom("audio/$lang/completion-bad")
                 imgCelebration.visibility = View.GONE
-                tvEndMessage.text = "keep practising!\n$roundCorrect out of $roundSize correct"
+                tvEndMessage.text = if (lang == "zh") "继续加油！\n${roundSize}题对了${roundCorrect}题" else "keep practising!\n$roundCorrect out of $roundSize correct"
             }
             else -> {
-                playRandom("audio/completion")
+                playRandom("audio/$lang/completion")
                 imgCelebration.visibility = View.GONE
-                tvEndMessage.text = "good job!\n$roundCorrect out of $roundSize correct"
+                tvEndMessage.text = if (lang == "zh") "做得好紫怡！\n${roundSize}题对了${roundCorrect}题" else "good job!\n$roundCorrect out of $roundSize correct"
             }
         }
         endScreen.visibility = View.VISIBLE
@@ -261,7 +272,7 @@ class MathGameActivity : AppCompatActivity() {
                 tvTimer.text = "0"
                 recordQuestion(false)
                 recordMistake(null)
-                playRandom("audio/timeout")
+                playRandom("audio/$lang/timeout")
                 tvAnswer.setTextColor(Color.parseColor("#F44336"))
                 handler.postDelayed({ advanceQuestion() }, 800)
             }
@@ -349,7 +360,7 @@ class MathGameActivity : AppCompatActivity() {
                 tvTimer.text = "0"
                 recordQuestion(false)
                 recordMistake(null)
-                playRandom("audio/timeout")
+                playRandom("audio/$lang/timeout")
                 tvAnswer.setTextColor(Color.parseColor("#F44336"))
                 handler.postDelayed({ advanceQuestion() }, 800)
             }
@@ -401,7 +412,7 @@ class MathGameActivity : AppCompatActivity() {
     }
 
     private fun updateScore() {
-        tvScore.text = "score: $totalScore"
+        tvScore.text = if (lang == "zh") "分数: $totalScore" else "score: $totalScore"
     }
 
     override fun onDestroy() {
