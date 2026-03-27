@@ -10,6 +10,7 @@ import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -30,6 +31,7 @@ class MainActivity : AppCompatActivity() {
     companion object {
         const val PREF_NAME = "chloe_prefs"
         const val PREF_LANG = "app_language"
+        const val PREF_MODE = "app_mode"
     }
 
     private lateinit var bounceZone: FrameLayout
@@ -39,6 +41,7 @@ class MainActivity : AppCompatActivity() {
     private val activePlayers = mutableListOf<MediaPlayer>()
     private lateinit var prefs: SharedPreferences
     private var lang: String = "en"
+    private var appMode: String = "math"
 
     private lateinit var flagUs: ImageView
     private lateinit var flagCn: ImageView
@@ -71,6 +74,37 @@ class MainActivity : AppCompatActivity() {
     private fun updateFlagAlpha() {
         flagUs.alpha = if (lang == "en") 1f else 0.35f
         flagCn.alpha = if (lang == "zh") 1f else 0.35f
+    }
+
+    private fun toggleMode() {
+        appMode = if (appMode == "math") "english" else "math"
+        prefs.edit().putString(PREF_MODE, appMode).apply()
+        playAssetSound(langAudio(if (appMode == "english") "chloe-learns-english.mp3" else "chloe-learns-math.mp3"))
+        updateLabels()
+        updateModeUI()
+    }
+
+    private fun updateModeUI() {
+        val isMath = appMode == "math"
+        // Show/hide appropriate game buttons
+        findViewById<LinearLayout>(R.id.colAddition).visibility = if (isMath) View.VISIBLE else View.GONE
+        findViewById<LinearLayout>(R.id.colMinus).visibility = if (isMath) View.VISIBLE else View.GONE
+        findViewById<LinearLayout>(R.id.colSpelling).visibility = if (!isMath) View.VISIBLE else View.GONE
+
+        // Update title
+        if (lang == "zh") {
+            findViewById<TextView>(R.id.txtLearnsMath).text = if (isMath) "学数学" else "学英语"
+        } else {
+            findViewById<TextView>(R.id.txtLearnsMath).text = if (isMath) "learns math" else "learns english"
+        }
+        // Update title icon
+        findViewById<ImageView>(R.id.imgBlackboard).setImageBitmap(
+            BitmapFactory.decodeStream(assets.open(if (isMath) "images/menu/blackboard.png" else "images/menu/book.png")))
+        // Update toggle button text
+        findViewById<TextView>(R.id.txtBtnModeToggle).text = if (isMath) "english" else "math"
+
+        // Update spelling label audio click
+        findViewById<TextView>(R.id.txtSpelling).setOnClickListener { playAssetSound(langAudio("menu/spelling.mp3")) }
     }
 
     private fun updateGamesToday() {
@@ -106,6 +140,9 @@ class MainActivity : AppCompatActivity() {
             findViewById<TextView>(R.id.txtBtnHistory).text = "历史"
             findViewById<TextView>(R.id.txtBtnStats).text = "统计"
             findViewById<TextView>(R.id.txtTodayLabel).text = "今天玩的次数"
+            findViewById<TextView>(R.id.txtSpelling).text = "拼写"
+            findViewById<TextView>(R.id.txtBtnSpellingEasy).text = "简单"
+            findViewById<TextView>(R.id.txtBtnSpellingHard).text = "困难"
         } else {
             findViewById<TextView>(R.id.txtChloe).text = "chloe "
             findViewById<TextView>(R.id.txtLearnsMath).text = "learns math"
@@ -118,6 +155,9 @@ class MainActivity : AppCompatActivity() {
             findViewById<TextView>(R.id.txtBtnHistory).text = "history"
             findViewById<TextView>(R.id.txtBtnStats).text = "stats"
             findViewById<TextView>(R.id.txtTodayLabel).text = "times played today"
+            findViewById<TextView>(R.id.txtSpelling).text = "spelling"
+            findViewById<TextView>(R.id.txtBtnSpellingEasy).text = "easy"
+            findViewById<TextView>(R.id.txtBtnSpellingHard).text = "hard"
         }
     }
 
@@ -203,6 +243,7 @@ class MainActivity : AppCompatActivity() {
 
         prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE)
         lang = prefs.getString(PREF_LANG, "en") ?: "en"
+        appMode = prefs.getString(PREF_MODE, "math") ?: "math"
 
         val font = Typeface.createFromAsset(assets, "fonts/BubblegumSans-Regular.ttf")
 
@@ -225,7 +266,11 @@ class MainActivity : AppCompatActivity() {
         findViewById<ImageView>(R.id.imgBtnAdditionHard).setImageBitmap(bmpRed)
         findViewById<ImageView>(R.id.imgBtnMinusEasy).setImageBitmap(bmpGreen)
         findViewById<ImageView>(R.id.imgBtnMinusHard).setImageBitmap(bmpRed)
+        findViewById<ImageView>(R.id.imgBtnSpellingEasy).setImageBitmap(bmpGreen)
+        findViewById<ImageView>(R.id.imgBtnSpellingHard).setImageBitmap(bmpRed)
         findViewById<ImageView>(R.id.imgBtnHistory).setImageBitmap(bmpOrange)
+        val bmpPink = BitmapFactory.decodeStream(assets.open("images/menu/btn-pink.png"))
+        findViewById<ImageView>(R.id.imgBtnModeToggle).setImageBitmap(bmpPink)
         findViewById<ImageView>(R.id.imgBtnStats).setImageBitmap(bmpBlue)
 
 
@@ -246,6 +291,10 @@ class MainActivity : AppCompatActivity() {
         applyFont(R.id.txtBtnMinusEasy)
         applyFont(R.id.txtBtnMinusHard)
         applyFont(R.id.txtBtnHistory)
+        applyFont(R.id.txtBtnModeToggle)
+        applyFont(R.id.txtSpelling)
+        applyFont(R.id.txtBtnSpellingEasy)
+        applyFont(R.id.txtBtnSpellingHard)
         applyFont(R.id.txtBtnStats)
         applyFont(R.id.txtTodayCount)
         applyFont(R.id.txtTodayLabel)
@@ -261,13 +310,26 @@ class MainActivity : AppCompatActivity() {
         findViewById<FrameLayout>(R.id.btnMinusEasy).setOnClickListener    { playAssetSound(langAudio("menu/easy.mp3")); launchGame(MathGameActivity.GAME_SUBTRACTION, MathGameActivity.MODE_EASY) }
         findViewById<FrameLayout>(R.id.btnMinusHard).setOnClickListener    { playAssetSound(langAudio("menu/hard.mp3")); launchGame(MathGameActivity.GAME_SUBTRACTION, MathGameActivity.MODE_HARD) }
         findViewById<FrameLayout>(R.id.btnHistory).setOnClickListener      { startActivity(Intent(this, HistoryActivity::class.java)) }
+        findViewById<FrameLayout>(R.id.btnModeToggle).setOnClickListener  { toggleMode() }
         findViewById<FrameLayout>(R.id.btnStats).setOnClickListener        { startActivity(Intent(this, StatsActivity::class.java)) }
-        findViewById<LinearLayout>(R.id.titleRow).setOnClickListener       { playAssetSound(langAudio("chloe-learns-math.mp3")) }
+        findViewById<LinearLayout>(R.id.titleRow).setOnClickListener       {
+            playAssetSound(langAudio(if (appMode == "math") "chloe-learns-math.mp3" else "chloe-learns-english.mp3"))
+        }
         findViewById<TextView>(R.id.txtAddition).setOnClickListener        { playAssetSound(langAudio("menu/addition.mp3")) }
         findViewById<TextView>(R.id.txtMinus).setOnClickListener           { playAssetSound(langAudio("menu/minus.mp3")) }
+        findViewById<TextView>(R.id.txtSpelling).setOnClickListener        { playAssetSound(langAudio("menu/spelling.mp3")) }
         findViewById<LinearLayout>(R.id.todayCounter).setOnClickListener   { playAssetSound(langAudio("menu/games-today.mp3")) }
+        findViewById<FrameLayout>(R.id.btnSpellingEasy).setOnClickListener {
+            playAssetSound(langAudio("menu/easy.mp3"))
+            startActivity(Intent(this, SpellingActivity::class.java).putExtra(SpellingActivity.EXTRA_MODE, SpellingActivity.MODE_EASY))
+        }
+        findViewById<FrameLayout>(R.id.btnSpellingHard).setOnClickListener {
+            playAssetSound(langAudio("menu/hard.mp3"))
+            startActivity(Intent(this, SpellingActivity::class.java).putExtra(SpellingActivity.EXTRA_MODE, SpellingActivity.MODE_HARD))
+        }
 
         updateLabels()
+        updateModeUI()
         updateGamesToday()
 
         charFiles = (assets.list("images/characters") ?: emptyArray())

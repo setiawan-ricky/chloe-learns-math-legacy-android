@@ -184,7 +184,12 @@ class MathGameActivity : AppCompatActivity() {
         } else {
             recordQuestion(false)
             recordMistake(answer)
-            playRandom("audio/$lang/incorrect")
+            if (mode == MODE_HARD) {
+                val clips = if (lang == "zh") SpellingActivity.INCORRECT_HARD_ZH else SpellingActivity.INCORRECT_HARD_EN
+                playFile(clips[kotlin.random.Random.nextInt(clips.size)])
+            } else {
+                playRandom("audio/$lang/incorrect")
+            }
             tvAnswer.setTextColor(Color.parseColor("#F44336"))
             if (mode == MODE_HARD) {
                 handler.postDelayed({ advanceQuestion() }, 800)
@@ -290,6 +295,20 @@ class MathGameActivity : AppCompatActivity() {
         } catch (_: Exception) {
             imgCelebration.visibility = View.GONE
         }
+    }
+
+    private fun playFile(path: String) {
+        try {
+            mediaPlayer?.release()
+            mediaPlayer = MediaPlayer().apply {
+                val afd = assets.openFd(path)
+                setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+                afd.close()
+                prepare()
+                start()
+                setOnCompletionListener { it.release() }
+            }
+        } catch (_: Exception) {}
     }
 
     private fun playRandom(assetFolder: String) {

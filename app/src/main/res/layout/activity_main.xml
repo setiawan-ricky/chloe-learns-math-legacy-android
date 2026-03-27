@@ -118,6 +118,7 @@
 
         <!-- Addition column -->
         <LinearLayout
+            android:id="@+id/colAddition"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -223,6 +224,7 @@
 
         <!-- Minus column -->
         <LinearLayout
+            android:id="@+id/colMinus"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -295,6 +297,80 @@
 
         </LinearLayout>
 
+        <!-- Spelling column (English mode) -->
+        <LinearLayout
+            android:id="@+id/colSpelling"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:paddingEnd="12dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/txtSpelling"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="spelling"
+                android:textSize="30sp"
+                android:textColor="#9E9E9E"
+                android:letterSpacing="0.10"
+                android:layout_marginBottom="10dp" />
+
+            <FrameLayout
+                android:id="@+id/btnSpellingEasy"
+                android:layout_width="match_parent"
+                android:layout_height="90dp"
+                android:layout_marginBottom="4dp"
+                android:clickable="true"
+                android:focusable="true">
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitCenter"
+                    android:id="@+id/imgBtnSpellingEasy" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="easy"
+                    android:textSize="26sp"
+                    android:textColor="#FFFFFF"
+                    android:gravity="center"
+                    android:shadowColor="#4D000000"
+                    android:shadowDx="0"
+                    android:shadowDy="2"
+                    android:shadowRadius="3"
+                    android:id="@+id/txtBtnSpellingEasy" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/btnSpellingHard"
+                android:layout_width="match_parent"
+                android:layout_height="90dp"
+                android:clickable="true"
+                android:focusable="true">
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitCenter"
+                    android:id="@+id/imgBtnSpellingHard" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="hard"
+                    android:textSize="26sp"
+                    android:textColor="#FFFFFF"
+                    android:gravity="center"
+                    android:shadowColor="#4D000000"
+                    android:shadowDx="0"
+                    android:shadowDy="2"
+                    android:shadowRadius="3"
+                    android:id="@+id/txtBtnSpellingHard" />
+            </FrameLayout>
+
+        </LinearLayout>
+
     </LinearLayout>
 
     <!-- Bottom row: history + stats -->
@@ -329,6 +405,34 @@
                 android:shadowDy="2"
                 android:shadowRadius="3"
                 android:id="@+id/txtBtnHistory" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/btnModeToggle"
+            android:layout_width="160dp"
+            android:layout_height="80dp"
+            android:layout_marginEnd="12dp"
+            android:clickable="true"
+            android:focusable="true">
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitCenter"
+                android:id="@+id/imgBtnModeToggle" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="chloe learns english"
+                android:textSize="14sp"
+                android:textColor="#FFFFFF"
+                android:gravity="center"
+                android:shadowColor="#4D000000"
+                android:shadowDx="0"
+                android:shadowDy="2"
+                android:shadowRadius="3"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:id="@+id/txtBtnModeToggle" />
         </FrameLayout>
 
         <FrameLayout

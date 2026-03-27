@@ -21,7 +21,7 @@ class StatsActivity : AppCompatActivity() {
     private var lang = "en"
 
     data class Stat(val key: String, val game: String, val num1: Int, val num2: Int, val score: Int, val attempts: Int)
-    data class Mistake(val key: String, val givenAnswer: String, val correctAnswer: Int, val date: String)
+    data class Mistake(val key: String, val givenAnswer: String, val correctAnswer: String, val game: String, val date: String)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -149,9 +149,13 @@ class StatsActivity : AppCompatActivity() {
         list.addView(makeRow(hQ, hA, hT, isHeader = true))
 
         for (s in sorted) {
-            val op = if (s.game == "Minus") " \u2212 " else " + "
-            val ans = if (s.game == "Minus") s.num1 - s.num2 else s.num1 + s.num2
-            val question = "${s.num1}$op${s.num2} = $ans"
+            val question = if (s.game == "Spelling") {
+                s.key.removePrefix("Spelling:")
+            } else {
+                val op = if (s.game == "Minus") " \u2212 " else " + "
+                val ans = if (s.game == "Minus") s.num1 - s.num2 else s.num1 + s.num2
+                "${s.num1}$op${s.num2} = $ans"
+            }
             val pct = accuracy(s)
             val rowMistakes = allMistakes.filter { it.key == s.key }
 
@@ -188,7 +192,9 @@ class StatsActivity : AppCompatActivity() {
                         orientation = LinearLayout.HORIZONTAL
                         setPadding(0, dp(4), 0, dp(4))
                     }
-                    val label = if (m.givenAnswer == "timeout") {
+                    val label = if (m.game == "Spelling") {
+                        "\"${m.givenAnswer}\" → \"${m.correctAnswer}\""
+                    } else if (m.givenAnswer == "timeout") {
                         if (lang == "zh") "超时" else "timeout"
                     } else {
                         if (lang == "zh") "回答了 ${m.givenAnswer}" else "answered ${m.givenAnswer}"
@@ -261,7 +267,7 @@ class StatsActivity : AppCompatActivity() {
             val p = line.split("|")
             // format: key|givenAnswer|correctAnswer|game|num1|num2|date
             if (p.size >= 7) {
-                Mistake(p[0], p[1], p[2].toIntOrNull() ?: 0, p[6])
+                Mistake(p[0], p[1], p[2], p[3], p[6])
             } else null
         }
     }

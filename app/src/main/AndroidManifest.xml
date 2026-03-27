@@ -29,6 +29,10 @@
             android:name=".StatsActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".SpellingActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>
