@@ -32,6 +32,9 @@
         <activity
             android:name=".SpellingActivity"
             android:exported="false" />
+        <activity
+            android:name=".LscwcActivity"
+            android:exported="false" />
 
     </application>
 

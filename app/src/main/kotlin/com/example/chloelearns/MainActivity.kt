@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var explosionBitmap: Bitmap
     private var charFiles: Array<String> = emptyArray()
     private val handler = Handler(Looper.getMainLooper())
-    private val activePlayers = mutableListOf<MediaPlayer>()
+    private var currentPlayer: MediaPlayer? = null
     private lateinit var prefs: SharedPreferences
     private var lang: String = "en"
     private var appMode: String = "math"
@@ -48,17 +48,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun playAssetSound(path: String) {
         try {
+            val old = currentPlayer
             val afd: AssetFileDescriptor = assets.openFd(path)
             val mp = MediaPlayer()
             mp.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
             afd.close()
-            mp.setOnCompletionListener { p ->
-                activePlayers.remove(p)
-                p.release()
-            }
+            mp.setVolume(1f, 1f)
             mp.prepare()
             mp.start()
-            activePlayers.add(mp)
+            mp.setOnCompletionListener { it.release() }
+            currentPlayer = mp
+            old?.release()
         } catch (_: Exception) {}
     }
 
@@ -90,6 +90,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<LinearLayout>(R.id.colAddition).visibility = if (isMath) View.VISIBLE else View.GONE
         findViewById<LinearLayout>(R.id.colMinus).visibility = if (isMath) View.VISIBLE else View.GONE
         findViewById<LinearLayout>(R.id.colSpelling).visibility = if (!isMath) View.VISIBLE else View.GONE
+        findViewById<LinearLayout>(R.id.colLscwc).visibility = if (!isMath) View.VISIBLE else View.GONE
 
         // Update title
         if (lang == "zh") {
@@ -105,6 +106,7 @@ class MainActivity : AppCompatActivity() {
 
         // Update spelling label audio click
         findViewById<TextView>(R.id.txtSpelling).setOnClickListener { playAssetSound(langAudio("menu/spelling.mp3")) }
+        findViewById<TextView>(R.id.txtLscwc).setOnClickListener { playAssetSound(langAudio("menu/lscwc.mp3")) }
     }
 
     private fun updateGamesToday() {
@@ -143,6 +145,8 @@ class MainActivity : AppCompatActivity() {
             findViewById<TextView>(R.id.txtSpelling).text = "拼写"
             findViewById<TextView>(R.id.txtBtnSpellingEasy).text = "简单"
             findViewById<TextView>(R.id.txtBtnSpellingHard).text = "困难"
+            findViewById<TextView>(R.id.txtLscwc).text = "看说"
+            findViewById<TextView>(R.id.txtBtnLscwcStart).text = "开始"
         } else {
             findViewById<TextView>(R.id.txtChloe).text = "chloe "
             findViewById<TextView>(R.id.txtLearnsMath).text = "learns math"
@@ -158,6 +162,8 @@ class MainActivity : AppCompatActivity() {
             findViewById<TextView>(R.id.txtSpelling).text = "spelling"
             findViewById<TextView>(R.id.txtBtnSpellingEasy).text = "easy"
             findViewById<TextView>(R.id.txtBtnSpellingHard).text = "hard"
+            findViewById<TextView>(R.id.txtLscwc).text = "look say"
+            findViewById<TextView>(R.id.txtBtnLscwcStart).text = "start"
         }
     }
 
@@ -268,6 +274,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<ImageView>(R.id.imgBtnMinusHard).setImageBitmap(bmpRed)
         findViewById<ImageView>(R.id.imgBtnSpellingEasy).setImageBitmap(bmpGreen)
         findViewById<ImageView>(R.id.imgBtnSpellingHard).setImageBitmap(bmpRed)
+        findViewById<ImageView>(R.id.imgBtnLscwcStart).setImageBitmap(bmpGreen)
         findViewById<ImageView>(R.id.imgBtnHistory).setImageBitmap(bmpOrange)
         val bmpPink = BitmapFactory.decodeStream(assets.open("images/menu/btn-pink.png"))
         findViewById<ImageView>(R.id.imgBtnModeToggle).setImageBitmap(bmpPink)
@@ -295,6 +302,8 @@ class MainActivity : AppCompatActivity() {
         applyFont(R.id.txtSpelling)
         applyFont(R.id.txtBtnSpellingEasy)
         applyFont(R.id.txtBtnSpellingHard)
+        applyFont(R.id.txtLscwc)
+        applyFont(R.id.txtBtnLscwcStart)
         applyFont(R.id.txtBtnStats)
         applyFont(R.id.txtTodayCount)
         applyFont(R.id.txtTodayLabel)
@@ -322,6 +331,10 @@ class MainActivity : AppCompatActivity() {
         findViewById<FrameLayout>(R.id.btnSpellingEasy).setOnClickListener {
             playAssetSound(langAudio("menu/easy.mp3"))
             startActivity(Intent(this, SpellingActivity::class.java).putExtra(SpellingActivity.EXTRA_MODE, SpellingActivity.MODE_EASY))
+        }
+        findViewById<FrameLayout>(R.id.btnLscwcStart).setOnClickListener {
+            playAssetSound(langAudio("menu/lscwc.mp3"))
+            startActivity(Intent(this, LscwcActivity::class.java))
         }
         findViewById<FrameLayout>(R.id.btnSpellingHard).setOnClickListener {
             playAssetSound(langAudio("menu/hard.mp3"))
@@ -425,7 +438,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacks(bounceRunnable)
-        activePlayers.forEach { it.release() }
-        activePlayers.clear()
+        currentPlayer?.release()
+        currentPlayer = null
     }
 }

@@ -94,22 +94,26 @@ class SpellingActivity : AppCompatActivity() {
     private lateinit var btnHearWord: TextView
     private lateinit var btnHearSentence: TextView
     private var mediaPlayer: MediaPlayer? = null
+    private var audioSeqId = 0
     private var countDownTimer: CountDownTimer? = null
     private val handler = Handler(Looper.getMainLooper())
 
     private val word: String get() = words.getOrElse(questionIdx) { "" }
 
     private fun playAssetSound(path: String) {
+        audioSeqId++
         try {
-            mediaPlayer?.release()
+            val old = mediaPlayer
             val afd: AssetFileDescriptor = assets.openFd(path)
-            mediaPlayer = MediaPlayer().apply {
-                setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
-                afd.close()
-                prepare()
-                start()
-                setOnCompletionListener { it.release() }
-            }
+            val mp = MediaPlayer()
+            mp.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+            afd.close()
+            mp.setVolume(1f, 1f)
+            mp.prepare()
+            mp.start()
+            mp.setOnCompletionListener { it.release() }
+            mediaPlayer = mp
+            old?.release()
         } catch (_: Exception) {}
     }
 
@@ -225,27 +229,36 @@ class SpellingActivity : AppCompatActivity() {
     }
 
     private fun playWordSequence(w: String) {
+        val myId = ++audioSeqId
         val wordPath = "audio/en/spelling/${w}-word.mp3"
         val sentencePath = "audio/en/spelling/${w}-sentence.mp3"
-        playAssetSoundWithCompletion(wordPath) {
-            playAssetSoundWithCompletion(sentencePath) {
+        playAssetSoundWithCompletion(myId, wordPath) {
+            if (audioSeqId != myId) return@playAssetSoundWithCompletion
+            playAssetSoundWithCompletion(myId, sentencePath) {
+                if (audioSeqId != myId) return@playAssetSoundWithCompletion
                 playAssetSound(wordPath)
             }
         }
     }
 
-    private fun playAssetSoundWithCompletion(path: String, onComplete: () -> Unit) {
+    private fun playAssetSoundWithCompletion(seqId: Int, path: String, onComplete: () -> Unit) {
+        if (audioSeqId != seqId) { onComplete(); return }
         try {
-            mediaPlayer?.release()
+            val old = mediaPlayer
             val afd: AssetFileDescriptor = assets.openFd(path)
-            mediaPlayer = MediaPlayer().apply {
-                setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
-                afd.close()
-                prepare()
-                start()
-                setOnCompletionListener { it.release(); onComplete() }
+            val mp = MediaPlayer()
+            mp.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+            afd.close()
+            mp.setVolume(1f, 1f)
+            mp.prepare()
+            mp.start()
+            mediaPlayer = mp
+            old?.release()
+            mp.setOnCompletionListener {
+                it.release()
+                if (audioSeqId == seqId) onComplete()
             }
-        } catch (_: Exception) { onComplete() }
+        } catch (_: Exception) { if (audioSeqId == seqId) onComplete() }
     }
 
     private fun startTimer() {
@@ -298,15 +311,24 @@ class SpellingActivity : AppCompatActivity() {
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
 
+    private fun tileSize(): Int {
+        val screenW = resources.displayMetrics.widthPixels
+        val sidePad = dp(48)
+        return minOf(dp(120), (screenW - sidePad * 2) / word.length)
+    }
+
     private fun buildBlanks() {
         blanksRow.removeAllViews()
+        val tile = tileSize()
+        val blankW = (tile * 0.65).toInt()
+        val fs = (tile * 0.8f / resources.displayMetrics.density)
+        val underW = (blankW * 0.85).toInt()
+        val underH = maxOf(dp(4), (tile * 0.067).toInt())
         for (i in word.indices) {
             val box = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 gravity = Gravity.CENTER
-                layoutParams = LinearLayout.LayoutParams(dp(120), LinearLayout.LayoutParams.WRAP_CONTENT).apply {
-                    marginEnd = if (i < word.length - 1) dp(20) else 0
-                }
+                layoutParams = LinearLayout.LayoutParams(blankW, LinearLayout.LayoutParams.WRAP_CONTENT)
                 if (i < filled.size) {
                     isClickable = true; isFocusable = true
                     val idx = i
@@ -315,14 +337,14 @@ class SpellingActivity : AppCompatActivity() {
             }
             box.addView(TextView(this).apply {
                 text = if (i < filled.size) filled[i].toString() else ""
-                textSize = 96f; typeface = font
+                textSize = fs; typeface = font
                 setTextColor(Color.parseColor("#3F51B5"))
                 gravity = Gravity.CENTER
-                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(120))
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, tile)
             })
             if (i >= filled.size) {
                 box.addView(View(this).apply {
-                    layoutParams = LinearLayout.LayoutParams(dp(100), dp(8))
+                    layoutParams = LinearLayout.LayoutParams(underW, underH)
                     setBackgroundColor(Color.parseColor("#9E9E9E"))
                 })
             }
@@ -332,13 +354,15 @@ class SpellingActivity : AppCompatActivity() {
 
     private fun buildLetters() {
         lettersRow.removeAllViews()
+        val tile = tileSize()
+        val fs = (tile * 0.53f / resources.displayMetrics.density)
         for (i in available.indices) {
             val letter = available[i]
             lettersRow.addView(TextView(this).apply {
-                layoutParams = LinearLayout.LayoutParams(dp(120), dp(120)).apply {
-                    marginEnd = if (i < available.size - 1) dp(16) else 0
+                layoutParams = LinearLayout.LayoutParams(tile, tile).apply {
+                    marginEnd = if (i < available.size - 1) dp(10) else 0
                 }
-                gravity = Gravity.CENTER; textSize = 64f; typeface = font
+                gravity = Gravity.CENTER; textSize = fs; typeface = font
                 if (letter != null) {
                     text = letter.toString()
                     setTextColor(Color.parseColor("#F57F17"))

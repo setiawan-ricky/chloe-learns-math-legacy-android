@@ -299,15 +299,17 @@ class MathGameActivity : AppCompatActivity() {
 
     private fun playFile(path: String) {
         try {
-            mediaPlayer?.release()
-            mediaPlayer = MediaPlayer().apply {
-                val afd = assets.openFd(path)
-                setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
-                afd.close()
-                prepare()
-                start()
-                setOnCompletionListener { it.release() }
-            }
+            val old = mediaPlayer
+            val afd = assets.openFd(path)
+            val mp = MediaPlayer()
+            mp.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+            afd.close()
+            mp.setVolume(1f, 1f)
+            mp.prepare()
+            mp.start()
+            mp.setOnCompletionListener { it.release() }
+            mediaPlayer = mp
+            old?.release()
         } catch (_: Exception) {}
     }
 
@@ -316,15 +318,7 @@ class MathGameActivity : AppCompatActivity() {
             val files = assets.list(assetFolder) ?: return
             if (files.isEmpty()) return
             val file = files[Random.nextInt(files.size)]
-            mediaPlayer?.release()
-            mediaPlayer = MediaPlayer().apply {
-                val afd = assets.openFd("$assetFolder/$file")
-                setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
-                afd.close()
-                prepare()
-                start()
-                setOnCompletionListener { it.release() }
-            }
+            playFile("$assetFolder/$file")
         } catch (_: Exception) {}
     }
 
